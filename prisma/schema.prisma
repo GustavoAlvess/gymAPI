@@ -1,0 +1,46 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+enum CategoriaEnum {
+    FLEXIBILIDADE
+    MUSCULACAO
+    CARDIO
+    FUNCIONAL
+}
+
+model Aluno {
+    id       Int     @id @default(autoincrement())
+    nome     String
+    email    String?
+    telefone String?
+    cep      String?
+    ativo    Boolean @default(true)
+    preco    Decimal @db.Decimal(10, 2)
+
+//relacionamento - 1 alno pode ter vários treinos
+    treinos   Treino[]
+
+    @@map("aluno")
+}
+
+model Treino {
+    id         Int            @id @default(autoincrement())
+    nome       String
+    descricao  String?
+    categoria  CategoriaEnum?
+    disponivel Boolean        @default(true)
+    preco      Decimal        @db.Decimal(10, 2)
+    foto       String?
+
+
+// relacionamento - cada treino pertence a um aluno
+    aluno       Aluno          @relation(fields: [alunoId], references: [id])
+    alunoId     Int
+
+    @@map("treino")
+}
