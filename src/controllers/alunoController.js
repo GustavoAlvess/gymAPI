@@ -6,17 +6,43 @@ export const criar = async (req, res) => {
             return res.status(400).json({ error: 'Corpo da requisição vazio. Envie os dados!' });
         }
 
-        const { nome, email, telefone, cep, logradouro, bairro, localidade, uf } = req.body;
+        const { nome, email, telefone, cep} = req.body;
 
         if (!nome) return res.status(400).json({ error: 'O campo "nome" é obrigatório!' });
+        
+        
+        let enderecoAutomatico = {};
+        if (cep) {
+            const dadosCep = await buscarEnderecoNoViaCep(cep);
+            if (dadosCep) {
+                enderecoAutomatico = {
+                    logradouro: dadosCep.logradouro,
+                    bairro: dadosCep.bairro,
+                    localidade: dadosCep.localidade,
+                    uf: dadosCep.uf
+                };
+            }
+        }
 
-        const aluno = new AlunoModel({ nome, email, telefone, cep, logradouro, bairro, localidade, uf });
+        const alunoData = {
+            nome,
+            email,
+            telefone,
+            cep,
+            logradouro: enderecoAutomatico.logradouro || req.body.logradouro,
+            bairro: enderecoAutomatico.bairro || req.body.bairro,
+            localidade: enderecoAutomatico.localidade || req.body.localidade,
+            uf: enderecoAutomatico.uf || req.body.uf
+        };
+
+        const aluno = new AlunoModel(alunoData);
+
         const data = await aluno.criar();
 
         res.status(201).json({ message: 'Aluno criado com sucesso!', data });
     } catch (error) {
         console.error('Erro ao criar:', error);
-        res.status(500).json({ error: 'Erro interno ao salvar o aluno.' });
+        res.status(500).json({error: error.message || 'Erro interno.' });
     }
 };
 

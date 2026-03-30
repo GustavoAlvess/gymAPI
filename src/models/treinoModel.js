@@ -11,6 +11,24 @@ export default class TreinoModel {
 
     }
 
+
+
+    validar(){
+        if (!this.nome) {
+            throw new Error( 'O campo "nome" é obrigatório' );            
+        }
+
+        const categoriaEnum = ['MUSCULAÇÃO','FLEXIBILIDADE', ' CARDIO', 'FUNCIONAL'];
+
+        if (!this.categoria || !categoriaEnum.includes(this.categoria)) {
+             throw new Error('O campo "categoria" é obrigatório e deve estar entre as opções: MUSCULAÇÂO, FLEXIBILIDADE, CARDIO E FUNCIONAL ' );            
+        }
+        if (this.disponivel === false) {
+            throw new Error ('Treino não disponível');            
+        }
+        
+    }
+
     async criar() {
         return prisma.treino.create({
             data: {
@@ -47,15 +65,13 @@ export default class TreinoModel {
         if (filtros.nome) {
             where.nome = { contains: filtros.nome, mode: 'insensitive' };
         }
-        if (filtros.descricao) {
-            where.descricao = { contains: filtros.descricao, mode: 'insensitive' };
-        }
-        if (filtros.categoria) {
-            where.categoria = { contains: filtros.categoria, mode: 'insensitive' };
+        if (filtros.categoria !== undefined) {
+            where.categoria = filtros.categoria === 'true';
         }
         if (filtros.disponivel !== undefined) {
             where.disponivel = filtros.disponivel === 'true';
         }
+        
 
         // caso queira buscar a foto por url
          if (filtros.foto) {
