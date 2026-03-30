@@ -14,16 +14,19 @@ enum CategoriaEnum {
 }
 
 model Aluno {
-    id       Int     @id @default(autoincrement())
-    nome     String
-    email    String?
-    telefone String?
-    cep      String?
-    ativo    Boolean @default(true)
-    preco    Decimal @db.Decimal(10, 2)
+    id         Int     @id @default(autoincrement())
+    nome       String
+    email      String?
+    telefone   String?
+    cep        String?
+    logradouro String?
+    bairro     String?
+    localidade String?
+    uf         String?
+    ativo      Boolean @default(true)
 
-//relacionamento - 1 alno pode ter vários treinos
-    treinos   Treino[]
+    //relacionamento - 1 alno pode ter vários treinos
+    treinos Treino[]
 
     @@map("aluno")
 }
@@ -34,13 +37,11 @@ model Treino {
     descricao  String?
     categoria  CategoriaEnum?
     disponivel Boolean        @default(true)
-    preco      Decimal        @db.Decimal(10, 2)
     foto       String?
 
-
-// relacionamento - cada treino pertence a um aluno
-    aluno       Aluno          @relation(fields: [alunoId], references: [id])
-    alunoId     Int
+    // relacionamento - cada treino pertence a um aluno
+    aluno   Aluno @relation(fields: [alunoId], references: [id])
+    alunoId Int
 
     @@map("treino")
 }
