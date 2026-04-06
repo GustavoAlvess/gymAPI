@@ -71,7 +71,7 @@ export const buscarTodos = async (req, res) => {
         const alunos = await AlunoModel.buscarTodos(req.query);
 
         if (!alunos || alunos.length === 0) {
-            return res.json({ message: 'Nenhum aluno encontrado.' });
+            return res.status(404).json({ message: 'Nenhum aluno encontrado.' });
         }
 
         res.json(alunos);

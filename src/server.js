@@ -13,9 +13,11 @@ app.get('/', (req, res) => {
 });
 
 // Rotas
-app.use('/api', treinoRoutes);
-app.use('/api', alunoRoutes);
+
+app.use('/treinos', treinoRoutes);
+app.use('/alunos', alunoRoutes);
 app.use('/uploads', express.static('uploads'));
+
 
 app.use((req, res) => {
     res.status(404).json({ error: 'Rota não encontrada' });

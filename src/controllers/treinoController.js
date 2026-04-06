@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
 
-const CATEGORIAS_VALIDAS = ['HIPERTROFIA', 'EMAGRECIMENTO', 'FUNCIONAL', 'CARDIO'];
+const CATEGORIAS_VALIDAS = ['FLEXIBILIDADE', 'MUSCULACAO', 'FUNCIONAL', 'CARDIO'];
 
 export const criar = async (req, res) => {
     try {
