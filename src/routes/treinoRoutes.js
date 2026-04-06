@@ -1,6 +1,12 @@
-const multer = require('multer');
-const TreinoController = require('../controllers/treinoController');
+import express from 'express';
+import * as controller from '../controllers/treinoController.js';
 
-const upload = multer({ storage: multer.memoryStorage() });
+const router = express.Router();
 
-router.post('/catalogo/:id/foto', upload.single('foto'), TreinoController.uploadFoto);
+router.post('/', controller.criar);
+router.get('/', controller.buscarTodos);
+router.get('/:id', controller.buscarPorId);
+router.put('/:id', controller.atualizar);
+router.delete('/:id', controller.deletar);
+
+export default router;
