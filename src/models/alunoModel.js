@@ -28,7 +28,7 @@ export default class AlunoModel {
                 ativo: this.ativo,
             },
 
-            
+
         });
     }
 
@@ -53,7 +53,7 @@ export default class AlunoModel {
         }
 
         if (!nome || nome.length < 3 || nome.length > 100) {
-            return res.status(400).json({ error: 'O campo "nome" é obrigatório e deve conter entre 3 e 100 caracteres.' });
+            throw new Error( 'O campo "nome" é obrigatório e deve conter entre 3 e 100 caracteres.');
         }
 
         if (filtros.email) {
@@ -61,22 +61,24 @@ export default class AlunoModel {
         }
 
         if (!email.includes('@') || !email.includes('.')) {
-            return res.status(400).json({ error: 'O campo "email" deve ser um endereço de email válido. (Deve conter "@" e ".")' });
+            throw new Error( 'O campo "email" deve ser um endereço de email válido. (Deve conter "@" e ".")' );
         }
 
         if (filtros.telefone !== undefined) {
             where.telefone = parseFloat(filtros.telefone);
         }
 
-        if (!telefone.length < 10 || !telefone.lenght > 11) {
-            return res.status(400).json({ error: 'O campo "telefone" deve conter 10 ou 11 dígitos.' });
+        if (!telefone.length < 10 || !telefone.length > 11) {
+            throw new Error( 'O campo "telefone" deve conter 10 ou 11 dígitos.' );
         }
 
         if (filtros.cep) {
             where.cep = { contains: filtros.cep, mode: 'insensitive' };
         }
 
-
+        if (!cep.length = 8 ) {
+            throw new Error ( 'O campo "CEP" deve conter 8 dígitos sem caracteres especiais')
+        }
 
         if (filtros.logradouro) {
             where.logradouro = { contains: filtros.logradouro, mode: 'insensitive' };
@@ -98,14 +100,14 @@ export default class AlunoModel {
             where.ativo = filtros.ativo === 'true';
         }
 
-        return prisma.aluno.findMany({ where });
+        throw prisma.aluno.findMany({ where });
     }
 
     static async buscarPorId(id) {
         const data = await prisma.aluno.findUnique({ where: { id } });
         if (!data) {
-            return null;
+            throw null;
         }
-        return new alunoModel(data);
+        throw new alunoModel(data);
     }
 }
