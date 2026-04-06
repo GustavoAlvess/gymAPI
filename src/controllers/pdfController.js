@@ -86,10 +86,9 @@ class PdfController {
             return res.send(pdfBuffer);
         } catch (error) {
             return res.status(500).json({ erro: 'Erro ao gerar relatório geral.' });
+            
         }
     }
-
-    
 }
 
 module.exports = new PdfController();
