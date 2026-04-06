@@ -1,94 +1,141 @@
-const { prisma } = require('../utils/prisma');
-const sharp = require('sharp');
-const path = require('path');
-const fs = require('fs');
+import TreinoModel from '../models/treinoModel.js';
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs';
 
-class TreinoController {
+const CATEGORIAS_VALIDAS = ['HIPERTROFIA', 'EMAGRECIMENTO', 'FUNCIONAL', 'CARDIO'];
 
-    async criar(req, res) {
-        try {
-            const { nome, descricao, categoria, preco, disponivel } = req.body;
-
-            if (!nome || !categoria || preco === undefined) {
-                return res.status(400).json({ erro: 'Campo obrigatório não informado.' });
-            }
-
-            const categoriasValidas = ['HIPERTROFIA', 'EMAGRECIMENTO', 'FUNCIONAL', 'CARDIO'];
-            if (!categoriasValidas.includes(categoria.toUpperCase())) {
-                return res.status(400).json({ erro: 'Categoria inválida.' });
-            }
-
-            if (preco < 0) {
-                return res.status(400).json({ erro: 'Preço deve ser maior ou igual a zero.' });
-            }
-
-            const treino = await prisma.treino.create({
-                data: {
-                    nome,
-                    descricao,
-                    categoria: categoria.toUpperCase(),
-                    preco,
-                    disponivel: disponivel ?? true,
-                },
-            });
-
-            return res.status(201).json(treino);
-        } catch (error) {
-            return res.status(500).json({ erro: 'Erro interno ao criar treino.' });
+export const criar = async (req, res) => {
+    try {
+        if (!req.body) {
+            return res.status(400).json({ error: 'Corpo da requisição vazio.' });
         }
-    }
 
-    async listar(req, res) {
-        const { nome, categoria, disponivel } = req.query;
-        try {
-            const treinos = await prisma.treino.findMany({
-                where: {
-                    nome: nome ? { contains: nome } : undefined,
-                    categoria: categoria ? categoria.toUpperCase() : undefined,
-                    disponivel: disponivel !== undefined ? disponivel === 'true' : undefined,
-                },
+        const { nome, descricao, categoria, disponivel } = req.body;
+
+        if (!nome) return res.status(400).json({ error: 'O campo "nome" é obrigatório!' });
+        if (!categoria) return res.status(400).json({ error: 'A "categoria" é obrigatória!' });
+
+        if (!CATEGORIAS_VALIDAS.includes(categoria.toUpperCase())) {
+            return res.status(400).json({
+                error: 'Categoria inválida. Use: ' + CATEGORIAS_VALIDAS.join(', '),
             });
-            return res.status(200).json(treinos);
-        } catch (error) {
-            return res.status(500).json({ erro: 'Erro ao listar treinos.' });
         }
-    }
 
-    async uploadFoto(req, res) {
+        const treinoData = {
+            nome,
+            descricao,
+            categoria: categoria.toUpperCase(),
+            disponivel: disponivel ?? true,
+        };
+
+        const treino = new TreinoModel(treinoData);
+        const data = await treino.criar();
+
+        res.status(201).json({ message: 'Treino criado com sucesso!', data });
+    } catch (error) {
+        console.error('Erro ao criar treino:', error);
+        res.status(500).json({ error: error.message || 'Erro interno.' });
+    }
+};
+
+export const buscarTodos = async (req, res) => {
+    try {
+        const treinos = await TreinoModel.buscarTodos(req.query);
+
+        if (!treinos || treinos.length === 0) {
+            return res.status(200).json({ message: 'Nenhum treino encontrado.' });
+        }
+
+        res.json(treinos);
+    } catch (error) {
+        console.error('Erro ao buscar treinos:', error);
+        res.status(500).json({ error: 'Erro ao buscar treinos.' });
+    }
+};
+
+export const buscarPorId = async (req, res) => {
+    try {
         const { id } = req.params;
-        try {
-            const treino = await prisma.treino.findUnique({ where: { id: Number(id) } });
-            if (!treino) return res.status(404).json({ erro: 'Registro não encontrado.' });
-            if (!req.file) return res.status(400).json({ erro: 'Arquivo de imagem obrigatório.' });
+        if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
 
-            const nomeArquivo = `treino-${id}-${Date.now()}.jpg`;
-            const caminhoFinal = path.join('uploads', nomeArquivo);
+        const treino = await TreinoModel.buscarPorId(parseInt(id));
 
-            await sharp(req.file.buffer).resize(800).jpeg({ quality: 80 }).toFile(caminhoFinal);
-
-            if (treino.foto && fs.existsSync(treino.foto)) {
-                fs.unlinkSync(treino.foto);
-            }
-
-            const atualizado = await prisma.treino.update({
-                where: { id: Number(id) },
-                data: { foto: caminhoFinal },
-            });
-
-            return res.status(200).json(atualizado);
-        } catch (error) {
-            return res.status(500).json({ erro: 'Erro no processamento da imagem.' });
+        if (!treino) {
+            return res.status(404).json({ error: 'Treino não encontrado.' });
         }
-    }
 
-    async buscarFoto(req, res) {
+        res.json({ data: treino });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar treino.' });
+    }
+};
+
+export const atualizar = async (req, res) => {
+    try {
         const { id } = req.params;
-        const treino = await prisma.treino.findUnique({ where: { id: Number(id) } });
+        if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
 
-        if (!treino || !treino.foto) return res.status(404).json({ erro: 'Foto não encontrada.' });
+        const treino = await TreinoModel.buscarPorId(parseInt(id));
+        if (!treino) return res.status(404).json({ error: 'Treino não encontrado.' });
 
-        return res.sendFile(path.resolve(treino.foto));
+        if (req.body.nome !== undefined) treino.nome = req.body.nome;
+        if (req.body.descricao !== undefined) treino.descricao = req.body.descricao;
+        if (req.body.categoria !== undefined) {
+            if (!CATEGORIAS_VALIDAS.includes(req.body.categoria.toUpperCase())) {
+                return res.status(400).json({ error: 'Categoria inválida.' });
+            }
+            treino.categoria = req.body.categoria.toUpperCase();
+        }
+        if (req.body.disponivel !== undefined) treino.disponivel = req.body.disponivel;
+
+        const data = await treino.atualizar();
+        res.json({ message: 'Treino atualizado com sucesso!', data });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao atualizar treino.' });
     }
-}
+};
 
-module.exports = new TreinoController();
+export const uploadFoto = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!req.file) return res.status(400).json({ error: 'Nenhuma foto enviada.' });
+
+        const treino = await TreinoModel.buscarPorId(parseInt(id));
+        if (!treino) return res.status(404).json({ error: 'Treino não encontrado.' });
+
+        const nomeArquivo = `treino-${id}-${Date.now()}.jpg`;
+        const pastaUploads = path.join(process.cwd(), 'uploads');
+        const caminhoCompleto = path.join(pastaUploads, nomeArquivo);
+
+        if (!fs.existsSync(pastaUploads)) fs.mkdirSync(pastaUploads);
+
+        await sharp(req.file.buffer).resize(800).jpeg({ quality: 80 }).toFile(caminhoCompleto);
+
+        if (treino.foto && fs.existsSync(path.join(process.cwd(), treino.foto))) {
+            fs.unlinkSync(path.join(process.cwd(), treino.foto));
+        }
+
+        treino.foto = `uploads/${nomeArquivo}`;
+        await treino.atualizar();
+
+        res.json({ message: 'Foto enviada com sucesso!', foto: treino.foto });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao processar foto.' });
+    }
+};
+
+export const deletar = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const treino = await TreinoModel.buscarPorId(parseInt(id));
+
+        if (!treino) return res.status(404).json({ error: 'Treino não encontrado.' });
+
+        await treino.deletar();
+        res.json({ message: `Treino "${treino.nome}" deletado com sucesso!` });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao deletar treino.' });
+    }
+};
