@@ -76,8 +76,8 @@ export default class AlunoModel {
             where.cep = { contains: filtros.cep, mode: 'insensitive' };
         }
 
-        if (!cep.length = 8 ) {
-            throw new Error ( 'O campo "CEP" deve conter 8 dígitos sem caracteres especiais')
+        if (!cep.length === 8 ) {
+            throw new Error('O campo "CEP" deve conter 8 dígitos sem caracteres especiais');
         }
 
         if (filtros.logradouro) {
