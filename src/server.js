@@ -2,6 +2,7 @@ import express from 'express';
 import 'dotenv/config';
 import alunoRoutes from './routes/alunoRoutes.js';
 import treinoRoutes from './routes/treinoRoutes.js';
+import pdfRoutes from './routes/pdfRoutes.js';
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,7 @@ app.get('/', (req, res) => {
 
 app.use('/treinos', treinoRoutes);
 app.use('/alunos', alunoRoutes);
+app.use('/alunos/pdf', pdfRoutes);
 app.use('/uploads', express.static('uploads'));
 
 

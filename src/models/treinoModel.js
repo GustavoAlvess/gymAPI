@@ -65,8 +65,8 @@ export default class TreinoModel {
         if (filtros.nome) {
             where.nome = { contains: filtros.nome, mode: 'insensitive' };
         }
-        if (filtros.categoria !== undefined) {
-            where.categoria = filtros.categoria === 'true';
+        if (filtros.categoria) {
+            where.categoria = filtros.categoria.toUpperCase();
         }
         if (filtros.disponivel !== undefined) {
             where.disponivel = filtros.disponivel === 'true';

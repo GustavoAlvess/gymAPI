@@ -37,13 +37,16 @@ export default class AlunoModel {
         if (this.telefone && (this.telefone.length < 10 || this.telefone.length > 11)) {
             throw new Error('O campo "telefone" deve conter 10 ou 11 dígitos.');
         }
-        if (this.cep && this.cep.length !== 8) {
+    }
+    validarCEP() {
+          if (this.cep && this.cep.length !== 8) {
             throw new Error('O campo "CEP" deve conter 8 dígitos sem caracteres especiais.');
         }
     }
 
     async criar() {
         this.validar(); 
+        this.validarCEP(); 
 
         return prisma.aluno.create({
             data: {
@@ -80,6 +83,10 @@ export default class AlunoModel {
     }
 
     async deletar() {
+        await prisma.treino.deleteMany({
+        where: { alunoId: this.id }
+    });
+
         return prisma.aluno.delete({ where: { id: this.id } });
     }
 

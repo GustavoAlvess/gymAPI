@@ -41,16 +41,32 @@ export const criar = async (req, res) => {
 
 export const buscarTodos = async (req, res) => {
     try {
+        const { categoria } = req.query;
+
+        if (categoria) {
+            
+            const categoriaFormatada = categoria.toUpperCase();
+            
+            if (!CATEGORIAS_VALIDAS.includes(categoriaFormatada)) {
+                return res.status(404).json({ 
+                    message: `A categoria '${categoria}' não existe. Use: ${CATEGORIAS_VALIDAS.join(', ')}` 
+                });
+            }
+
+        }
+
+    
         const treinos = await TreinoModel.buscarTodos(req.query);
 
         if (!treinos || treinos.length === 0) {
-            return res.status(200).json({ message: 'Nenhum treino encontrado.' });
+            return res.status(404).json({ message: 'Nenhum treino encontrado para este filtro.' });
         }
 
         res.json(treinos);
+
     } catch (error) {
-        console.error('Erro ao buscar treinos:', error);
-        res.status(500).json({ error: 'Erro ao buscar treinos.' });
+        console.error('ERRO NO PRISMA:', error.message);
+        res.status(500).json({ error: 'Erro interno ao buscar treinos.' });
     }
 };
 
