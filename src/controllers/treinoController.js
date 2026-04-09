@@ -11,10 +11,12 @@ export const criar = async (req, res) => {
             return res.status(400).json({ error: 'Corpo da requisição vazio.' });
         }
 
-        const { nome, descricao, categoria, disponivel } = req.body;
+        const { nome, descricao, categoria, disponivel, alunoId } = req.body;
 
         if (!nome) return res.status(400).json({ error: 'O campo "nome" é obrigatório!' });
         if (!categoria) return res.status(400).json({ error: 'A "categoria" é obrigatória!' });
+
+        if (!alunoId) return res.status(400).json({ error: 'O "alunoId" é obrigatório para vincular o treino!' });
 
         if (!CATEGORIAS_VALIDAS.includes(categoria.toUpperCase())) {
             return res.status(400).json({
@@ -27,6 +29,7 @@ export const criar = async (req, res) => {
             descricao,
             categoria: categoria.toUpperCase(),
             disponivel: disponivel ?? true,
+            alunoId: Number(alunoId),
         };
 
         const treino = new TreinoModel(treinoData);
@@ -44,18 +47,18 @@ export const buscarTodos = async (req, res) => {
         const { categoria } = req.query;
 
         if (categoria) {
-            
+
             const categoriaFormatada = categoria.toUpperCase();
-            
+
             if (!CATEGORIAS_VALIDAS.includes(categoriaFormatada)) {
-                return res.status(404).json({ 
-                    message: `A categoria '${categoria}' não existe. Use: ${CATEGORIAS_VALIDAS.join(', ')}` 
+                return res.status(404).json({
+                    message: `A categoria '${categoria}' não existe. Use: ${CATEGORIAS_VALIDAS.join(', ')}`
                 });
             }
 
         }
 
-    
+
         const treinos = await TreinoModel.buscarTodos(req.query);
 
         if (!treinos || treinos.length === 0) {
