@@ -1,44 +1,42 @@
 import prisma from '../utils/prismaClient.js';
 
 export default class TreinoModel {
-    constructor({ id, nome, descricao = null, categoria = null, disponivel = true, foto = null } = {}) {
+    constructor({ id, nome, descricao = null, categoria = null, disponivel = true, foto = null, alunoId } = {}) {
         this.id = id;
         this.nome = nome;
         this.descricao = descricao;
         this.categoria = categoria;
         this.disponivel = disponivel;
+        this.alunoId = alunoId;
         this.foto = foto;
-
     }
 
-
-
-    validar(){
+    validar() {
         if (!this.nome) {
-            throw new Error( 'O campo "nome" é obrigatório' );            
+            throw new Error('O campo "nome" é obrigatório');
         }
+        const categoriaEnum = ['MUSCULAÇÃO', 'FLEXIBILIDADE', 'CARDIO', 'FUNCIONAL'];
 
-        const categoriaEnum = ['MUSCULAÇÃO','FLEXIBILIDADE', ' CARDIO', 'FUNCIONAL'];
-
-        if (!this.categoria || !categoriaEnum.includes(this.categoria)) {
-             throw new Error('O campo "categoria" é obrigatório e deve estar entre as opções: MUSCULAÇÂO, FLEXIBILIDADE, CARDIO E FUNCIONAL ' );            
+        if (!this.categoria || !categoriaEnum.includes(this.categoria.toUpperCase())) {
+            throw new Error('O campo "categoria" é obrigatório e deve ser: MUSCULAÇÃO, FLEXIBILIDADE, CARDIO ou FUNCIONAL');
         }
-        if (this.disponivel === false) {
-            throw new Error ('Treino não disponível');            
-        }
-        
     }
 
     async criar() {
-        return prisma.treino.create({
+        if (!this.alunoId) {
+            throw new Error('Não é possível criar um treino sem um alunoId vinculado.');
+        }
+
+        return await prisma.treino.create({
             data: {
                 nome: this.nome,
                 descricao: this.descricao,
                 categoria: this.categoria,
                 disponivel: this.disponivel,
-                foto: this.foto,
-
-            },
+                aluno: {
+                    connect: { id: Number(this.alunoId) }
+                }
+            }
         });
     }
 
@@ -71,7 +69,7 @@ export default class TreinoModel {
         if (filtros.disponivel !== undefined) {
             where.disponivel = filtros.disponivel === 'true';
         }
-        
+
 
         // caso queira buscar a foto por url
          if (filtros.foto) {
