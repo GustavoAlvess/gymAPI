@@ -1,9 +1,18 @@
 import express from 'express';
 const router = express.Router();
 
-import { gerarPdfGeral, gerarPdfIndividual } from '../controllers/pdfController.js';
+import {
+    gerarPdfGeral,
+    gerarPdfIndividual,
+    gerarPdfTreinoIndividual,
+    gerarPdfGeralTreinos
+} from '../controllers/pdfController.js';
 
-router.get('/todos', gerarPdfGeral);
-router.get('/:id', gerarPdfIndividual);
+// Rotas de ALUNOS
+router.get('/aluno/:id', gerarPdfIndividual);
+
+// Rotas de TREINOS
+router.get('/treino/:id', gerarPdfTreinoIndividual);
+router.get('/treinos/todos', gerarPdfGeralTreinos);
 
 export default router;

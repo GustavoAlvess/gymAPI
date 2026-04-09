@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 
 app.use('/treinos', treinoRoutes);
 app.use('/alunos', alunoRoutes);
-app.use('/alunos/pdf', pdfRoutes);
+app.use('/pdf', pdfRoutes);
 app.use('/uploads', express.static('uploads'));
 
 
